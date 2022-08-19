@@ -146,10 +146,10 @@ workflows:
       - build-frontend
       - build-backend
       - test-frontend:
-          context: slack-secrets
+          context: ehmeeud-context
           requires: [build-frontend]
       - test-backend:
-          context: slack-secrets
+          context: ehmeeud-context
           requires: [build-backend]
       - scan-backend:
           requires: [build-backend]
