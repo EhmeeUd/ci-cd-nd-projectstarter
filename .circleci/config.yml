@@ -186,7 +186,7 @@ configure-infrastructure:
       - add_ssh_keys:
           fingerprints: ["ea:1f:cc:9b:ff:84:3f:30:7a:04:83:e3:14:81:d9:96"]
       - attach_workspace:
-          at: ~/
+          at: .
       - run:
           name: Install dependencies
           command: |
