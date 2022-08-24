@@ -213,39 +213,25 @@ jobs:
       - add_ssh_keys:
               # You can get this ID in the section where you registered the SSH Key
               fingerprints: ["ea:1f:cc:9b:ff:84:3f:30:7a:04:83:e3:14:81:d9:96"]
-      # - run:
-      #     name: Install dependencies
-      #     command: |
-      #       apk add --update --no-cache tar gzip ansible aws-cli
-      # - attach_workspace:
-      #     at: ~/
-      # - run:
-      #     name: Configure server
-      #     command: |
-      #       cd .circleci/ansible
-      #       cat ~/project/.circleci/ansible/inventory.txt
-      #       ansible-playbook -i ~/project/.circleci/ansible/inventory.txt configure-server.yml
-      # - run: 
-      #     name: View content of inventory.txt
-      #     command: cat .circleci/ansible/inventory.txt
-      # - destroy-environment:
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - attach_workspace:
-          at: .    
-      - run: 
-          name: View content of inventory.txt
-          command: cat .circleci/ansible/inventory.txt      
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible --no-cache ansible openssh rsync
-            pip install awscli      
+            apk add --update --no-cache tar gzip ansible aws-cli
+      - attach_workspace:
+          at: ~/
       - run:
           name: Configure server
+          no_output_timeout: "30m"
           command: |
             cd .circleci/ansible
-            cat inventory.txt
-            ansible-playbook -i inventory.txt configure-server.yml
+            cat ~/project/.circleci/ansible/inventory.txt
+            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt configure-server.yml
+      - run: 
+          name: View content of inventory.txt
+          command: cat .circleci/ansible/inventory.txt
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      
       
   run-migrations:
     docker:
