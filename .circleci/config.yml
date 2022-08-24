@@ -207,7 +207,7 @@ jobs:
       
   configure-infrastructure:
     docker:
-      - image: python:3.10-alpine3.16
+      - image: python:3.7-alpine3.16
     steps:
       - checkout
       - add_ssh_keys:
@@ -216,7 +216,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible nodejs npm aws-cli
+            apk add --update --no-cache tar gzip ansible aws-cli
       - attach_workspace:
           at: ~/
       - run:
