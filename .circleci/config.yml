@@ -16,6 +16,24 @@ commands:
               aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
               aws cloudformation delete-stack \
                 --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+    
+    revert-migrations:
+      description: Revert the last migration if successfully run in the current workflow.
+      parameters:
+        workflow_id:
+          type: string     
+      steps:
+        - run:
+            name: Revert migrations
+            when: on_fail
+            command: |
+              SUCCESS=$(curl --insecure  https://kvdb.io/12tAjncYQVNTn5JRGcehRt/migration_<< parameters.workflow_id >>)
+              if (( $SUCCESS == 1 ));
+              then
+                  cd ~/project/backend
+                  npm install
+                  npm run migrations:revert
+              fi 
 
 orbs: 
   slack: circleci/slack@4.10.1
@@ -174,14 +192,14 @@ jobs:
                 --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
                 --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
                 --tags project=udapeople
-      # - run:
-      #     name: Save backend IP in kvdb
-      #     command: |
-      #       BACKEND_IP=$(aws ec2 describe-instances \
-      #         --query 'Reservations[*].Instances[*].PublicIpAddress' \
-      #         --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-      #         --output text)
-      #       curl https://kvdb.io/12tAjncYQVNTn5JRGcehRt/backend_ip_${CIRCLE_WORKFLOW_ID:0:7} -d ${BACKEND_IP} 
+      - run:
+          name: Save backend IP in kvdb
+          command: |
+            BACKEND_IP=$(aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --output text)
+            curl https://kvdb.io/12tAjncYQVNTn5JRGcehRt/backend_ip_${CIRCLE_WORKFLOW_ID:0:7} -d ${BACKEND_IP} 
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -370,7 +388,7 @@ jobs:
             echo "API_URL=${API_URL}"
             if curl "${API_URL}/api/status" | grep "ok"
             then
-              return 0
+              return 1
             else
               return 1
             fi
@@ -381,7 +399,7 @@ jobs:
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
-              return 0
+              return 1
             else
               return 1
             fi
