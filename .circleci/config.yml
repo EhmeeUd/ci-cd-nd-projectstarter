@@ -212,7 +212,7 @@ jobs:
       - checkout
       - add_ssh_keys:
               # You can get this ID in the section where you registered the SSH Key
-              fingerprints: ["ea:1f:cc:9b:ff:84:3f:30:7a:04:83:e3:14:81:d9:96"]
+              fingerprints: ["a4:a8:3b:84:84:8e:08:65:28:18:d5:3d:23:16:f2:cd"]
       - run:
           name: Install dependencies
           command: |
@@ -262,7 +262,6 @@ jobs:
             if grep -q "has been executed successfully." ~/project/backend/migrations.txt
             then
                 echo "DB migration was successful, will update memstash..."
-                # If you are using kvdb.io, generate the bucket ID "9GE4jRtKznmVKRfvdBABBe" in your local terminal first
                 curl -k https://kvdb.io/12tAjncYQVNTn5JRGcehRt/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             else
               echo "DB migration failed, please verify setup! Probably the database already exists. Verify setup!"
@@ -322,7 +321,7 @@ jobs:
             - backend-build
       - add_ssh_keys:
               # You can get this ID in the section where you registered the SSH Key
-              fingerprints: ["ea:1f:cc:9b:ff:84:3f:30:7a:04:83:e3:14:81:d9:96"]
+              fingerprints: ["a4:a8:3b:84:84:8e:08:65:28:18:d5:3d:23:16:f2:cd"]
       - attach_workspace:
           at: ~/
       - run:
