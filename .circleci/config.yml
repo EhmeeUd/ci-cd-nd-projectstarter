@@ -375,14 +375,15 @@ jobs:
       - run:
           name: Get backend url and Run backend smoke test
           command: |
-            export BACKEND_IP=$(curl --insecure https://kvdb.io/12tAjncYQVNTn5JRGcehRt/backend_ip_${CIRCLE_WORKFLOW_ID:0:7})
-            echo ${BACKEND_IP}
-
-            export BACKEND=$(echo $BACKEND_IP | grep -o '[^ ]*$')
-            
+            export BACKEND_IP=$(aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --output text)
             echo $BACKEND
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL=${API_URL}"
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
             if curl "${API_URL}/api/status" | grep "ok"
             then
               return 0
