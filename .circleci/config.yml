@@ -375,7 +375,12 @@ jobs:
       - run:
           name: Get backend url and Run backend smoke test
           command: |
-            BACKEND_IP=$(curl --insecure https://kvdb.io/12tAjncYQVNTn5JRGcehRt/backend_ip_${CIRCLE_WORKFLOW_ID:0:7})
+            export BACKEND_IP=$(curl --insecure https://kvdb.io/12tAjncYQVNTn5JRGcehRt/backend_ip_${CIRCLE_WORKFLOW_ID:0:7})
+            echo ${BACKEND_IP}
+
+            export BACKEND=$(echo $BACKEND_IP | grep -o '[^ ]*$')
+            
+            echo $BACKEND
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL=${API_URL}"
             if curl "${API_URL}/api/status" | grep "ok"
@@ -400,7 +405,43 @@ jobs:
       - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}     
 
-         
+  cloudfront-update:
+    docker:
+      - image: python:3.9.0-alpine
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update curl
+            curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+            unzip awscli-bundle.zip
+            ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+      - run:
+          name: Export old WorkflowID
+          command: |
+            aws cloudformation \
+            list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+            --no-paginate --output text > ~/oldworkflowid.txt
+            echo $oldworkflowid >> ~/oldworkflowid.txt
+            cat ~/oldworkflowid.txt
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name InitialStack \
+            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+            --tags project=udapeople
+            echo Current Workflow ID: ${CIRCLE_WORKFLOW_ID:0:7}
+      - persist_to_workspace:
+          root: ~/
+          paths: 
+            - oldworkflowid.txt
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}       
 
 workflows:
   default:
@@ -432,4 +473,6 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
+      - cloudfront-update:
+          requires: [smoke-test]
           
