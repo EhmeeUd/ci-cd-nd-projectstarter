@@ -1,5 +1,10 @@
 version: 2.1
 
+parameters:
+  workflow_id:
+    type: string
+    default: '${CIRCLE_WORKFLOW_ID:0:7}'
+
 commands:
     destroy-environment:
       description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -233,8 +238,20 @@ jobs:
           name: Configure server
           no_output_timeout: "30m"
           command: |
+            # add environment variables to server
+            echo ENVIRONMENT=production > backend/.env
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> backend/.env
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> backend/.env
+            echo TYPEORM_HOST=$TYPEORM_HOST >> backend/.env
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> backend/.env
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> backend/.env
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
+            echo TYPEORM_PORT=$TYPEORM_PORT >> backend/.env
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> backend/.env
+            cat backend/.env
             cd .circleci/ansible
-            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt configure-server.yml
+            ansible-playbook -i inventory.txt configure-server.yml
       - run: 
           name: View content of inventory.txt
           command: | 
@@ -375,13 +392,14 @@ jobs:
       - run:
           name: Get backend url and Run backend smoke test
           command: |
+            # export BACKEND_IP=$(tail ~/project/.circleci/ansible/inventory.txt)
             export BACKEND_IP=$(aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --output text)
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+            --output text)
             export API_URL="http://${BACKEND_IP}:3030"
-            echo "API_URL=${API_URL}"
-            if curl "${API_URL}/api/status" | grep "ok"
+            echo $API_URL
+            if curl --connect-timeout 5 "${API_URL}/api/status" | grep "ok"
             then
               return 0
             else
