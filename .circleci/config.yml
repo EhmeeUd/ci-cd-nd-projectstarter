@@ -481,10 +481,10 @@ jobs:
               echo Stack names: "${STACKS[@]}"
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
-              echo "----------cleaning up stacks------------"
-              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
-              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
-              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+              # echo "----------cleaning up stacks------------"
+              # aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+              # aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+              # aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
             fi
             # echo <<pipeline.parameters.workflow_id>>
             # export OldWorkflowID=<<pipeline.parameters.workflow_id>>
@@ -498,8 +498,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints:
-            - 'ab:52:25:68:df:4c:3a:d5:48:18:55:d8:f9:3b:df:de'
+          fingerprints: ["a4:a8:3b:84:84:8e:08:65:28:18:d5:3d:23:16:f2:cd"]
       - run:
           name: Install dependencies
           command: |
@@ -549,5 +548,7 @@ workflows:
           requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
           requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]    
+      - add-prometheus-node-exporter:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]    
