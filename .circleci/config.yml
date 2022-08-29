@@ -293,7 +293,7 @@ jobs:
               echo "DB migration failed, please verify setup! Probably the database already exists. Verify setup!"
             fi
       - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+          # workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   deploy-frontend:
     docker:
