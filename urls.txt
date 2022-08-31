@@ -1,5 +1,5 @@
 Github URL - https://github.com/EhmeeUd/ci-cd-nd-projectstarter
 
-Frontend App Bucket URL - http://udapeople-c2c9cca.s3-website-us-east-1.amazonaws.com/#/employees
+Frontend App Bucket URL - http://udapeople-ec3b439.s3-website-us-east-1.amazonaws.com/#/employees
 
 CloudFront URL - http://dowl46xzqv6hr.cloudfront.net/#/employees
